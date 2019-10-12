@@ -20,7 +20,7 @@ from sklearn.preprocessing import FunctionTransformer
 
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import classification_report, fbeta_score, make_scorer
-from sklearn.metrics import accuracy_score, precision_score, recall_score
+from sklearn.metrics import f1_score, precision_score, recall_score
 import pickle
 
 import warnings
@@ -144,10 +144,10 @@ def evaluate_model(model, X_test, Y_test, category_names):
         cat_Y_test = Y_test.iloc[:,i].values
         cat_Y_pred = Y_pred[:,i]
 
-        accuracy = accuracy_score(cat_Y_test, cat_Y_pred)
+        f1 = f1_score(cat_Y_test, cat_Y_pred)
         precision = precision_score(cat_Y_test, cat_Y_pred)
         recall = recall_score(cat_Y_test, cat_Y_pred)
-        print(f'    Accuracy: {accuracy:.4f}    % Precision: {precision:.4f}    % Recall: {recall:.4f}')
+        print(f'    F1 Score: {f1:.4f}    % Precision: {precision:.4f}    % Recall: {recall:.4f}')
 
 
 def save_model(model, model_filepath):

@@ -1,6 +1,7 @@
 import json
 import plotly
 import pandas as pd
+import numpy as np
 
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
@@ -25,12 +26,25 @@ def tokenize(text):
 
     return clean_tokens
 
+# Required by model pipeline
+def count_words(data):
+    """Compute number of words
+    
+    Args:
+        data (Series or 1D-array): Text data.
+    
+    Returns:
+        NumPy 1D-arrary: Word count values for each text.
+    """
+    return np.array([len(text.split()) for text in data]).reshape(-1, 1)
+
+
 # load data
-engine = create_engine('sqlite:///../data/YourDatabaseName.db')
-df = pd.read_sql_table('YourTableName', engine)
+engine = create_engine('sqlite:///../data/DisasterResponse.db')
+df = pd.read_sql_table('messages', engine)
 
 # load model
-model = joblib.load("../models/your_model_name.pkl")
+model = joblib.load("../models/classifier.pkl")
 
 
 # index webpage displays cool visuals and receives user input text for model
@@ -42,6 +56,12 @@ def index():
     # TODO: Below is an example - modify to extract data for your own visuals
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
+    
+    # Find the numbers of class 1 and class 0 in each category
+    class_counts = df.iloc[:,4:].apply(pd.value_counts).fillna(0)
+    class_1_counts = class_counts.loc[1]
+    class_0_counts = class_counts.loc[0]
+    category_names = class_counts.columns
     
     # create visuals
     # TODO: Below is an example - modify to create your own visuals
@@ -62,6 +82,37 @@ def index():
                 'xaxis': {
                     'title': "Genre"
                 }
+            }
+        },
+        # Stacked bar chart to show class counts
+        {
+            'data': [
+                Bar(
+                    x=category_names,
+                    y=class_1_counts,
+                    name = 'Class 1'
+                ),
+                Bar(
+                    x=category_names,
+                    y=class_0_counts,
+                    name = 'Class 0',
+                    marker = dict(
+                        color = 'rgb(255, 143, 43)'
+                    )
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of Classes',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': "Category",
+                    'automargin': True,
+                    'tickangle': -45
+                },
+                'barmode' : 'stack'
             }
         }
     ]
